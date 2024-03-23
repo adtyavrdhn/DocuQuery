@@ -4,12 +4,14 @@ import { createUploadthing, type FileRouter } from "uploadthing/next";
 
 import { PDFLoader } from "langchain/document_loaders/fs/pdf";
 import { OpenAIEmbeddings } from "langchain/embeddings/openai";
-import { PineconeStore } from "langchain/vectorstores/pinecone";
-import { getPineconeClient } from "@/lib/pinecone";
+// import { PineconeStore } from "langchain/vectorstores/pinecone";
+import { PineconeStore } from "@langchain/pinecone";
+// import { getPineconeClient } from "@/lib/pinecone";
 import { getUserSubscriptionPlan } from "@/lib/stripe";
 import { PLANS } from "@/config/stripe";
 // import { Pinecone } from "@pinecone-database/pinecone";
 import { Document } from "@langchain/core/documents";
+import { Pinecone } from "@pinecone-database/pinecone";
 
 const f = createUploadthing();
 
@@ -64,7 +66,7 @@ const onUploadComplete = async ({
 
     const loader = new PDFLoader(blob);
 
-    let pageLevelDocs: any = await loader.load();
+    const pageLevelDocs = await loader.load();
 
     const pagesAmt = pageLevelDocs.length;
 
@@ -88,23 +90,16 @@ const onUploadComplete = async ({
     }
 
     // vectorize and index entire document
-    const pinecone = await getPineconeClient();
-    const pineconeIndex = pinecone.index("docuquery");
+    // const pinecone = await getPineconeClient();
+    // const pineconeIndex = pinecone.index("docuquery");
+
+    const pinecone = new Pinecone();
+
+    const pineconeIndex = pinecone.Index(process.env.PINECONE_INDEX!);
 
     const embeddings = new OpenAIEmbeddings({
       openAIApiKey: process.env.OPENAI_API_KEY,
     });
-
-    // console.log(pageLevelDocs);
-
-    // pageLevelDocs = pageLevelDocs.map((doc: any) => {
-    //   return new Document({
-    //     metadata: doc.metadata,
-    //     pageContent: doc.pageContent,
-    //   });
-    // });
-
-    // console.log(pageLevelDocs);
 
     await PineconeStore.fromDocuments(pageLevelDocs, embeddings, {
       pineconeIndex,

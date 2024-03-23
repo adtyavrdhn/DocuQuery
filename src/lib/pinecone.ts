@@ -12,7 +12,8 @@ export const getPineconeClient = async () => {
 
   const client = new Pinecone({
     apiKey: process.env.PINECONE_API_KEY!,
-    environment: "us-east1-gcp",
+    // environment: "us-east1-gcp",
+    environment: "us-central1",
   });
 
   return client;

@@ -3,10 +3,12 @@ import { openai } from "@/lib/openai";
 import { getPineconeClient } from "@/lib/pinecone";
 import { SendMessageValidator } from "@/lib/validators/SendMessageValidator";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
-import { OpenAIEmbeddings } from "langchain/embeddings/openai";
-import { PineconeStore } from "langchain/vectorstores/pinecone";
+// import { OpenAIEmbeddings } from "langchain/embeddings/openai";
+// import { PineconeStore } from "langchain/vectorstores/pinecone";
+import { PineconeStore } from "@langchain/pinecone";
 import { NextRequest } from "next/server";
-
+import { OpenAIEmbeddings } from "@langchain/openai";
+import { Pinecone } from "@pinecone-database/pinecone";
 import { OpenAIStream, StreamingTextResponse } from "ai";
 
 export const POST = async (req: NextRequest) => {
@@ -46,8 +48,11 @@ export const POST = async (req: NextRequest) => {
     openAIApiKey: process.env.OPENAI_API_KEY,
   });
 
-  const pinecone = await getPineconeClient();
-  const pineconeIndex = pinecone.Index("docuquery");
+  // const pinecone = await getPineconeClient();
+  const pinecone = new Pinecone();
+  // const pineconeIndex = pinecone.Index("docuquery");
+
+  const pineconeIndex = pinecone.Index(process.env.PINECONE_INDEX!);
 
   const vectorStore = await PineconeStore.fromExistingIndex(embeddings, {
     pineconeIndex,
